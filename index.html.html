@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeerTransit - Sir MVIT Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <header class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-700 p-2.5 rounded-xl border border-indigo-500/30 flex items-center justify-center">
+                    <i class="fa-solid fa-users-route text-xl text-indigo-200"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight flex items-center">
+                        PeerTransit
+                    </h1>
+                    <p class="text-[11px] text-indigo-200 font-semibold tracking-wide uppercase">Sir MVIT Campus Portal</p>
+                </div>
+            </div>
+            <span class="bg-indigo-700/60 border border-indigo-500/40 text-xs text-indigo-100 px-3 py-1.5 rounded-full font-medium shadow-sm">
+                <i class="fa-solid fa-graduation-cap mr-1 text-indigo-300"></i> Local Ride Board
+            </span>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <section class="md:col-span-1">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 sticky top-6">
+                <h2 class="text-xl font-bold mb-1 flex items-center text-slate-900">
+                    <i class="fa-solid fa-bullhorn text-indigo-500 mr-2"></i>Post a Route
+                </h2>
+                <p class="text-xs text-slate-400 mb-4 font-medium">Leaving the Sir MVIT gates? Share your ride.</p>
+                
+                <form id="routeForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Your Name</label>
+                        <input type="text" id="creator" required placeholder="e.g., Rahul Sharma" 
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">WhatsApp Number</label>
+                        <input type="tel" id="phone" required placeholder="e.g., 9876543210" 
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Destination</label>
+                        <input type="text" id="destination" required placeholder="e.g., Yelahanka New Town / Majestic" 
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Departure Time</label>
+                            <input type="time" id="depTime" required 
+                                class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Max Capacity</label>
+                            <select id="capacity" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="3">3 (Auto)</option>
+                                <option value="4">4 (Cab)</option>
+                                <option value="6">6 (SUV)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition dynamic-shadow mt-2 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                        <span>Publish to Board</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <section class="md:col-span-2 flex flex-col space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold text-slate-900 flex items-center">
+                    <i class="fa-solid fa-clipboard-list text-indigo-500 mr-2"></i>Active Transit Pools
+                </h2>
+                <button onclick="clearPastRoutes()" class="text-xs text-slate-400 hover:text-red-500 transition">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Clear Board
+                </button>
+            </div>
+
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-2">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 pl-2"></i>
+                <input type="text" id="searchDest" oninput="renderBoard()" placeholder="Where are you heading? (Filter destination...)" 
+                    class="w-full text-sm bg-transparent border-none outline-none focus:ring-0 placeholder-slate-400">
+            </div>
+
+            <div id="bulletinBoard" class="space-y-4">
+                </div>
+        </section>
+    </main>
+
+    <div id="joinModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Join Ride Group</h3>
+            <p class="text-slate-500 text-sm mb-4">Provide your details to connect with peers and split fare costs directly.</p>
+            <form id="joinForm" class="space-y-3">
+                <input type="hidden" id="targetRouteId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Your Name</label>
+                    <input type="text" id="joinerName" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Your name">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">WhatsApp Number</label>
+                    <input type="tel" id="joinerPhone" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="WhatsApp Number">
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-lg text-sm font-medium transition">Cancel</button>
+                    <button type="submit" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium transition">Confirm Join</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+        &copy; 2026 PeerTransit — Exclusively for Sir M. Visvesvaraya Institute of Technology.
+    </footer>
+
+    <script>
+        // Seed default dummy data tuned for Sir MVIT context
+        let routes = JSON.parse(localStorage.getItem('peerTransitRoutes')) || [
+            {
+                id: "101",
+                creator: "Sarah Jenkins",
+                phone: "9876543210",
+                destination: "Yelahanka Junction (Railway Station)",
+                depTime: "16:30",
+                capacity: 4,
+                members: [
+                    { name: "Sarah Jenkins", phone: "9876543210" },
+                    { name: "Rohan Gupta", phone: "9123456789" }
+                ]
+            },
+            {
+                id: "102",
+                creator: "David Miller",
+                phone: "8887776665",
+                destination: "Kempegowda International Airport (BLR)",
+                depTime: "18:00",
+                capacity: 3,
+                members: [
+                    { name: "David Miller", phone: "8887776665" }
+                ]
+            }
+        ];
+
+        // Save utility
+        function saveRoutes() {
+            localStorage.setItem('peerTransitRoutes', JSON.stringify(routes));
+        }
+
+        // Render functions
+        function renderBoard() {
+            const container = document.getElementById('bulletinBoard');
+            const searchVal = document.getElementById('searchDest').value.toLowerCase();
+            container.innerHTML = '';
+
+            // Sort routes Chronologically by time
+            const filteredRoutes = routes
+                .filter(r => r.destination.toLowerCase().includes(searchVal))
+                .sort((a, b) => a.depTime.localeCompare(b.depTime));
+
+            if (filteredRoutes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200">
+                        <i class="fa-solid fa-map-location-dot text-4xl text-slate-300 mb-3"></i>
+                        <p class="text-slate-500 font-medium">No shared routes found.</p>
+                        <p class="text-slate-400 text-xs mt-1">Be the first to post a trip leaving Sir MVIT!</p>
+                    </div>`;
+                return;
+            }
+
+            filteredRoutes.forEach(route => {
+                const spotsLeft = route.capacity - route.members.length;
+                const isFull = spotsLeft <= 0;
+
+                // Build out list of current group members tags
+                let membersListHTML = route.members.map((m, idx) => `
+                    <div class="inline-flex items-center bg-slate-100 text-slate-700 text-xs font-medium px-2.5 py-1 rounded-md mr-1 mt-1 border border-slate-200">
+                        <i class="fa-solid fa-user text-[10px] text-slate-400 mr-1.5"></i>
+                        ${m.name} ${idx === 0 ? '<span class="text-[9px] ml-1 bg-indigo-100 text-indigo-700 px-1 rounded font-bold">Host</span>' : ''}
+                    </div>
+                `).join('');
+
+                // Render dynamic WhatsApp coordination panel if user is part of the group
+                let coordHTML = '';
+                if (route.members.length > 0) {
+                    coordHTML = `
+                        <div class="mt-4 pt-3 border-t border-slate-100 bg-slate-50/50 p-2.5 rounded-xl">
+                            <p class="text-xs font-bold text-slate-500 tracking-wide uppercase mb-1.5"><i class="fa-solid fa-comments text-emerald-500 mr-1"></i> Quick Connect Contacts</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${route.members.map(m => `
+                                    <a href="https://wa.me/${m.phone.replace(/[^0-9]/g, '')}" target="_blank" 
+                                       class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-md flex items-center space-x-1 border border-emerald-200/50 transition">
+                                        <i class="fa-brands fa-whatsapp text-emerald-600"></i>
+                                        <span>Ping ${m.name.split(' ')[0]}</span>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = `bg-white p-5 rounded-2xl shadow-sm border ${isFull ? 'border-slate-100 opacity-80' : 'border-slate-200/80 hover:border-indigo-200 transition-all duration-200'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-indigo-50 text-indigo-700 mb-2">
+                                <i class="fa-regular fa-clock mr-1"></i> Leaves Gate at ${route.depTime}
+                            </span>
+                            <h3 class="text-lg font-bold text-slate-900 flex items-center">
+                                <i class="fa-solid fa-location-dot text-rose-500 text-sm mr-2"></i> ${route.destination}
+                            </h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-2xl font-black ${isFull ? 'text-slate-400' : 'text-indigo-600'}">${spotsLeft}</span>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Seats Left</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <p class="text-xs font-semibold text-slate-400 mb-1">Current Pool:</p>
+                        <div class="flex flex-wrap">
+                            ${membersListHTML}
+                        </div>
+                    </div>
+
+                    ${coordHTML}
+
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-xs text-slate-400">Total Group Size: ${route.members.length}/${route.capacity}</span>
+                        ${isFull 
+                            ? `<span class="bg-slate-100 text-slate-400 text-xs font-bold px-4 py-1.5 rounded-lg pointer-events-none">Filled</span>`
+                            : `<button onclick="openJoinModal('${route.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition shadow-sm hover:shadow-md">Join Group</button>`
+                        }
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Add Route logic
+        document.getElementById('routeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const creator = document.getElementById('creator').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const destination = document.getElementById('destination').value.trim();
+            const depTime = document.getElementById('depTime').value;
+            const capacity = parseInt(document.getElementById('capacity').value);
+
+            const newRoute = {
+                id: Date.now().toString(),
+                creator,
+                phone,
+                destination,
+                depTime,
+                capacity,
+                members: [{ name: creator, phone: phone }]
+            };
+
+            routes.push(newRoute);
+            saveRoutes();
+            renderBoard();
+            document.getElementById('routeForm').reset();
+        });
+
+        // Modal triggers
+        function openJoinModal(id) {
+            document.getElementById('targetRouteId').value = id;
+            document.getElementById('joinModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('joinModal').classList.add('hidden');
+            document.getElementById('joinForm').reset();
+        }
+
+        // Join Submission Logic
+        document.getElementById('joinForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const routeId = document.getElementById('targetRouteId').value;
+            const joinerName = document.getElementById('joinerName').value.trim();
+            const joinerPhone = document.getElementById('joinerPhone').value.trim();
+
+            const routeIdx = routes.findIndex(r => r.id === routeId);
+            if(routeIdx !== -1) {
+                if (routes[routeIdx].members.length < routes[routeIdx].capacity) {
+                    routes[routeIdx].members.push({ name: joinerName, phone: joinerPhone });
+                    saveRoutes();
+                    renderBoard();
+                } else {
+                    alert("Whoops! This travel group just filled up.");
+                }
+            }
+            closeModal();
+        });
+
+        // Admin Reset Utility
+        function clearPastRoutes() {
+            if(confirm("Are you sure you want to reset the Sir MVIT board?")) {
+                routes = [];
+                saveRoutes();
+                renderBoard();
+            }
+        }
+
+        // Init Lifecycle Call
+        renderBoard();
+    </script>
+</body>
+</html>
